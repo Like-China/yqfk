@@ -2,6 +2,8 @@ import networkx as nx
 import random
 import math
 import matplotlib.pyplot as plt
+import numpy as np
+import Settings
 
 
 class SCAN:
@@ -112,10 +114,10 @@ def draw_spring(G, pos, com):
     NodeId = list(G.nodes())
     node_size = [G.degree(i) ** 1.2 * 90 for i in NodeId]  # 节点大小
 
-    plt.figure(figsize=(8, 6))  # 图片大小
+    plt.figure(figsize=(100, 100))  # 图片大小
     nx.draw(G, pos, with_labels=True, node_size=node_size, node_color='w', node_shape='.')
 
-    color_list = ['pink', 'orange', 'r', 'g', 'b', 'y', 'm', 'gray', 'black', 'c', 'brown']
+    color_list = ['pink', 'orange', 'r', 'g', 'b', 'y', 'm', 'gray', 'black', 'c', 'brown']*len(com)
     # node_shape = ['s','o','H','D']
 
     for i in range(len(com)):
@@ -135,20 +137,40 @@ def load_graph(path):
     return G
 
 
+def get_communities(pairs, mu):
+    G = nx.Graph()
+    print("共有%d个人物关系对"%len(pairs))
+    for line in pairs:
+        source, target = line[0], line[1]
+        G.add_edge(source, target)
+    # pos = nx.spring_layout(G)
+    # nx.draw(G, pos, with_labels=True, font_weight='bold')
+    # plt.show()
+    algorithm = SCAN(G, Settings.epsilon, mu)
+    communities = algorithm.execute()
+    # for community in communities:
+    #     print('community: ', sorted(community))
+    hubs_outliers = algorithm.get_hubs_outliers(communities)
+    # draw_spring(G,pos, communities)
+    return communities, hubs_outliers[0], hubs_outliers[1]
+
+
 if __name__ == '__main__':
     # G = nx.karate_club_graph()
-    G = load_graph('../data/OpenFlights.txt')
-    pos = nx.spring_layout(G)
+    # G = load_graph('../data/OpenFlights.txt')
+    # pos = nx.spring_layout(G)
     # nx.draw(G, pos, with_labels=True, font_weight='bold')
     # plt.show()
     # print(G.node.keys())
 
-    algorithm = SCAN(G, 0.5, 3)
-    communities = algorithm.execute()
-    for community in communities:
-        print('community: ', sorted(community))
-    hubs_outliers = algorithm.get_hubs_outliers(communities)
-    print('hubs: ', hubs_outliers[0])
-    print('outliers: ', hubs_outliers[1])
+    # algorithm = SCAN(G, 0.5, 3)
+    # communities = algorithm.execute()
+    # for community in communities:
+    #     print('community: ', sorted(community))
+    # hubs_outliers = algorithm.get_hubs_outliers(communities)
+    # print('hubs: ', hubs_outliers[0])
+    # print('outliers: ', hubs_outliers[1])
 
     # draw_spring(G,pos, communities)
+    pairs = np.load("../1.npy", allow_pickle=True)
+    communities, hubs, outliers = get_communities(pairs, Settings.mu)

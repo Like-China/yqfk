@@ -11,7 +11,9 @@ class User:
         self.hid = None
         self.hlon = None
         self.hlat = None
-
+        # 属于第几个社区
+        self.community_id = -1
+        self.co_movement_id = -1
         # 缓存天数
         max_cache_days = 7
         self.covid_records_order_by_day = []

@@ -3,7 +3,6 @@ import pymysql
 
 
 class DataLoader:
-
     def __init__(self):
         self.conn = self.connect()
 
@@ -52,3 +51,8 @@ class DataLoader:
 
     def close(self):
         self.conn.close()  # 关闭连接
+
+
+if __name__ == "__main__":
+    loader = DataLoader()
+    loader.query("source /home/like/yqfk/USER_BASE_INFO.sql")

@@ -1,35 +1,51 @@
-#! /usr/bin/env python3
-# -*- coding:utf-8 -*-
-# Note     : 用于实现求解两个字符串的最长公共子序列
-def longestCommonSequence(point_sequence_one, point_sequence_two):
-    """
-    point_sequence_one 和 point_sequence_two 的最长公共子序列
-    :param point_sequence_one: 字符串1
-    :param point_sequence_two: 字符串2（正确结果）
-    :param case_sensitive: 比较时是否区分大小写，默认区分大小写
-    :return: 最长公共子序列的长度
-    """
-    len_str1 = len(point_sequence_one)
-    len_str2 = len(point_sequence_two)
-    # 定义一个列表来保存最长公共子序列的长度，并初始化
-    record = [[0 for i in range(len_str2 + 1)] for j in range(len_str1 + 1)]
-    for i in range(len_str1):
-        for j in range(len_str2):
-            if point_sequence_one[i] == point_sequence_two[j]:
-                record[i + 1][j + 1] = record[i][j] + 1
-            elif record[i + 1][j] > record[i][j + 1]:
-                record[i + 1][j + 1] = record[i + 1][j]
+
+# -*- coding: utf-8 -*-
+import numpy as np
+from fun.dist import get_distance_hav
+import Settings
+
+
+def get_lcs_matrix(s1, s2):
+    dp = np.zeros((len(s1[0]) + 1, len(s2[0]) + 1))
+    for i in range(1, len(s1[0]) + 1):
+        for j in range(1, len(s2[0]) + 1):
+            lon1, lat1, lon2, lat2 = s1[0][i-1], s1[1][i-1], s2[0][j - 1], s2[1][j - 1]
+            if get_distance_hav(lon1, lat1, lon2, lat2) <= Settings.dist_error:
+                dp[i][j] = dp[i - 1][j - 1] + 1
             else:
-                record[i + 1][j + 1] = record[i][j + 1]
-    return record[-1][-1]
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp
+
+
+def get_lcs_seq(i, j, dp, s1, s2, index1, index2, res):
+    while i > 0 and j > 0:
+        lon1, lat1, lon2, lat2 = s1[0][i - 1], s1[1][i - 1], s2[0][j - 1], s2[1][j - 1]
+        if get_distance_hav(lon1, lat1, lon2, lat2) <= Settings.dist_error:
+            index1 += str(i-1)
+            index2 += str(j-1)
+            i -= 1
+            j -= 1
+        else:
+            if dp[i - 1][j] > dp[i][j - 1]:
+                i -= 1
+            elif dp[i - 1][j] < dp[i][j - 1]:
+                j -= 1
+            else:
+                get_lcs_seq(i - 1, j, dp, s1, s2, index1, index2, res)
+                get_lcs_seq(i, j - 1, dp, s1, s2, index1, index2, res)
+                return res
+    return [index1[::-1], index2[::-1]]
 
 
 if __name__ == '__main__':
-    # 字符串1
-    s1 = "BDCABA"
-    # 字符串2
-    s2 = "ABCBDAB"
-    # 计算最长公共子序列的长度
-    res = longestCommonSequence(s1, s2)
-    # 打印结果
-    print(res) # 4
+    arr = np.load("../0.npy", allow_pickle=True)
+    s1 = arr[10][3]
+    s2 = arr[21][3]
+    index1 = ''
+    index2 = ''
+    dp = get_lcs_matrix(s1, s2)
+    res = []
+    res = get_lcs_seq(len(s1[0]), len(s2[0]), dp, s1, s2, index1, index2, res)
+    print(res)
+
+
